@@ -1,0 +1,71 @@
+#OPTS=" -DPROGSIZE "
+
+echo "unix> ./r $*"
+
+name=$1
+shift
+
+rm $name.tap  2>/dev/null
+rm $name.out  2>/dev/null
+rm $name.o    2>/dev/null
+#rm $name.s    2>/dev/null
+
+# TODO: ld65 -D __GRAB__=1 to grab graphics memory =>44K (37K)
+# TODO: linker -D __AUTORUN__=$C7
+
+# -Cl = make local variables static ==> 13% faster!
+# BSS: +84 bytes!
+# CODE: +8 bytes
+# - https://www.cc65.org/doc/cc65-2.html#option-Cl
+
+# "makes" all local vars static, however INIT is run every time!
+# cannot do recursion? -- see code in $name: fibl works?
+
+# "Since the stack is emulated in software, this gives shorter and usually faster code, but the code is no longer reentrant. "
+
+# generating .s too
+#cl65 -Cl -O -t sim6502 $name.c -o $name.out -m $name.map 2>/dev/null
+cl65 -O $OPTS -t sim6502 $name.c -o $name.out -m $name.map 2>/dev/null
+
+# Optimize inline more - creates errornious code
+#cl65 -Oi $OPTS -t sim6502 $name.c -o $name.out -m $name.map 2>/dev/null
+
+#cl65 --codesize 10 -D__AUTORUN__=$C7 -O -t atmos $name.c -o $name.tap || exit 72
+( cl65 -O $OPTS -D__AUTORUN__=$C7 -t atmos $name.c -o $name.tap 2>&1 | sed 's/(\([0-9]\+\))/:\1/g' ) || exit 72
+
+cc65 -O $OPTS -T $name.c vm-asm.s 2>/dev/null # generate .s file
+#cc65 -O $OPTS -T $name.c 2>/dev/null # generate .s file
+
+ls -l $name.o $name.out $name.tap
+
+# -- enable NON-blocking getchar!!!
+
+##stty cbreak raw -echo min 0
+#stty cbreak -echo
+
+
+# -- simulation
+#echo "=== RUN ==="
+#(time sim65 -c $name.out "$@" ; echo "--- EXIT=$? ---") | tee ${name}.log
+(sim65 -c $name.out "$@" ; stty sane; echo "--- EXIT=$? ---") | tee $name.log
+echo
+(echo "`grep ' cycles' $name.log | sed -e 's/ cycles//'` /1000/1000" | bc -l ; echo "seconds simulated time");
+
+#ls -l $name.o $name.out $name.tap
+
+cl65 -vm -m $name.map $name.o
+
+#echo
+#grep '^Name' $name.map
+#grep '^CODE' $name.map
+#grep '^RODATA' $name.map
+#grep '^DATA' $name.map
+#echo
+echo "`./wcode $name.c ` LOC of $name  C-code (wc: `wc $name.c`)"
+echo
+echo "`./wcode singlisp.c ` LOC of LISP  C-code (wc: `wc singlisp.c`)"
+echo "`./wcode lisp.c ` LOC of LISP  C-code (wc: `wc lisp.c`)"
+echo "`./wcode dec30.c` LOC of DEC30 C-code (wc: `wc dec30.c`)"
+
+stty sane
+
