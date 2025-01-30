@@ -1,6 +1,14 @@
 #ffmpeg -i badgerbadgermushroom.mp4 -s 240x200 -r 1 oneps-%03d.jpeg
 
+# original frame rate is 25...!
+
 ffmpeg -i badgerbadgermushroom.mp4 -s 240x200 -r 25 oneps-%05d.ppm
+#ffmpeg -i badgerbadgermushroom.mp4 -s 240x200 -r 6 oneps-%05d.ppm
+
+#ffmpeg -i badgerbadgermushroom.mp4 -s 120x100 -r 25 oneps-%05d.ppm
+
+#ffmpeg -i badgerbadgermushroom.mp4 -s 240x200 -r 8 oneps-%05d.ppm
+#ffmpeg -i badgerbadgermushroom.mp4 -s 120x100 -r 6 oneps-%05d.ppm
 
 # ffmpeg
 
