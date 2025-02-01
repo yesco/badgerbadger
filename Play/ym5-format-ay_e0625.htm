@@ -1,0 +1,453 @@
+<!DOCTYPE HTML>
+<html>
+	<head>
+		<title>
+ - AY-3-8910/12 ZX Spectrum Sound Chip Emulator Documentation</title>
+<link rel="alternate" href="https://documentation.help/AY-3-8910.12-ZX-Spectrum/documentation.pdf"  /><link href="page_styles.css" rel="stylesheet" type="text/css"/>
+<link href="/calibreHtmlOutBasicCss.css" type="text/css" rel="stylesheet" />
+<!--<link href="https://arb.parts/opensearch.xml" rel="search" type="application/opensearchdescription+xml" title="Executive Order Search" />-->
+                <meta charset="utf-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
+                <link rel="stylesheet" href="/assets/css/main.css" />
+<link rel="shortcut icon" href="https://documentation.help/favicon.ico">
+                <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
+                <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
+<style>
+.collapse > a{
+  background: #cdf;
+  cursor: pointer;
+  display: block;
+}
+.collapse:focus{
+  outline: none;
+}
+.collapse > div{
+  display: none;
+}
+.collapse:focus div{
+  display: block; 
+}
+</style>
+
+
+        </head>
+        <body>
+
+                <!-- Wrapper -->
+                        <div id="wrapper">
+
+                                <!-- Main -->
+                                        <div id="main">
+                                                <div class="inner">
+
+                                                        <!-- Header -->
+                                                                <header id="header">
+                                                                        <a href="https://documentation.help/" class="logo"><strong>documentation</strong>.HELP!</a> AY-3-8910/12 ZX Spectrum Sound Chip Emulator Documentation                                                                </header>
+							<!-- Banner -->
+								<section>
+<h1></h1>
+<h4>AY-3-8910/12 ZX Spectrum Sound Chip Emulator</h4>
+									<div class="content">
+			
+                        <div><div class="calibreMain">
+
+  <div class="calibreEbookContent">
+    
+      <div class="calibreEbNavTop">
+        
+          <a href="ay_e94dp.htm" class="calibreAPrev">previous page</a>
+        
+
+        
+          <a href="ay_e0irc.htm" class="calibreANext"> next page</a>
+        
+      </div>
+    
+
+    
+<h1 class="calibre1"><a name="ym" class="calibre2"></a>YM</h1>
+<p class="calibre3">Arnaud Carre (Leonard/OXYGENE) designs this format for his emulator ST-Sound. First this emulator was an Atari ST sound chip emulator, but now this is a Multi-Computer Sound Emulator.</p>
+<p class="calibre3">Now this project consists of many programs (players, converters) and archives of music. But Speccy's archives are in very bad condition.</p>
+<p class="calibre3">Don't forget to set chip frequency to 2 000 000 Hz for Atari and to 1 000 000 Hz for Amstrad while listening YM2, YM3 and YM3b files with Atari and Amstrad music (this subtypes not consists data about frequency).</p>
+<p class="calibre3">So, for AY Emulator any YM file is LHA archive (type 5), created by LHA.EXE version 2.00 or older with -h0 switch (header type 0) by Haruyasu Yoshizaki. This archive consists of one file with any name. Its available formats are next.</p>
+<p class="calibre3"><b class="calibre9">YM2</b></p>
+<p class="calibre3">First four bytes is ASCII string 'YM2!'. Its structure like YM3, but information about samples can be stored additionally. All YM2-samples are fixed and stored in player (these are samples from Mad Max's music).</p>
+<p class="calibre3"><b class="calibre9">YM3</b></p>
+<p class="calibre3">First four bytes are ASCII string 'YM3!'. Next bytes are data block of AY chip registers values. Registers are updates one time in one interrupt (VBL). If music length is N interrupts, then block consist first N bytes for register 0, further N bytes for register 1 and so on, in total N*14 bytes. If in current interrupt was no outing to register 13 then byte of data block for this interrupt and for this register has value 255.</p>
+<p class="calibre3"><b class="calibre9">YM3b</b></p>
+<p class="calibre3">First four bytes are ASCII string 'YM3b'. Next bytes are data block (see YM3 description). And last four bytes are DWORD data: number of VBL for looping melody.</p>
+<p class="calibre3"><b class="calibre9">YM5</b></p>
+<p class="calibre3">This format consists of additional information: chip frequency, player frequency, title, author name, comment and specific Atari ST data (Digi-Drum and SID-Sound effects).</p>
+<p class="calibre3">From YMFORMAT.TXT:</p>
+<p class="calibre3">---------------------------cut here-------------------</p>
+<pre class="calibre4">
+Offset  Size    Type            Comment
+0       4       DWORD           ID of YM5 format. ('YM5!')
+4       8       string[8]       Check String ('LeOnArD!')
+12      4       DWORD           Nb of valid VBL of the file.
+16      4       DWORD           Song attributes (see bellow)
+20      2       WORD            Nb of digi-drum sample (can be 0)
+22      4       DWORD           YM2149 External frequency in Hz
+                                (ex:2000000 for ATARI-ST version,
+                                1000000 for AMSTRAD CPC)
+26      2       WORD            Player frequency in Hz
+                                (Ex: 50Hz for almost player)
+28      4       DWORD           Vbl number to loop the song.
+                                (0 is default)
+32      2       WORD            Size (in bytes) of future
+                                additional data.
+                                (must be 0 for the moment)
+
+For each digidrum sample:
+{
+..      4       DWORD           sample size
+..      ?       BYTES           sample data (8bits per sample)
+}
+
+..      ?       NT-String       Name of the song.
+..      ?       NT-String       Name of the author.
+..      ?       NT-String       Comments (YM file converter ?!)
+..      ?                       All YM2149 registers.
+..      4       DWORD           End-File check. ('End!')
+</pre>
+<p class="calibre3">---------------------------cut here-------------------</p>
+<p class="calibre3"><b class="calibre9">Remarks.</b></p>
+<p class="calibre3">1) VBL – Vertical Blank Time (interrupt).</p>
+<p class="calibre3">2) Numeric data (WORD and DWORD) stored in MOTOROLA order (from hi byte to lo).</p>
+<p class="calibre3">3) Data block contents now values for 16 registers (14 AY registers plus 2 virtual registers for Atari special effects).</p>
+<p class="calibre3">4) If bit 0 of field Song Attributes is set, data block are stored in YM3-style order (interleaved). If this bit is reset, then data block consists first 16 bytes of first VBL, then next 16 bytes for second VBL and so on. In second case YM5 file is compressed more badly.</p>
+<p class="calibre3"><b class="calibre9">YM6</b></p>
+<p class="calibre3">This format is equivalent of YM5, but can content yet two another special Atari ST effects is Sinus-SID and Sync Buzzer and can to play any two of special effects at one time.</p>
+<p class="calibre3">AY Emulator supports all special effects in YM5 and YM6 files.</p>
+<p class="calibre3">More info about YM files can be found in official ST-Sound package or on ST-Sound Project Homepage (<a href="http://leonard.oxg.free.fr/" target="_blank" class="calibre2">http://leonard.oxg.free.fr</a>). Some time ago author's STSoundLibrary with sources was released.</p>
+
+
+
+  </div>
+
+  
+  <div class="calibreEbNav">
+    
+      <a href="ay_e94dp.htm" class="calibreAPrev">previous page</a>
+    
+
+    <a href="./" class="calibreAHome"> start</a>
+
+    
+      <a href="ay_e0irc.htm" class="calibreANext"> next page</a>
+    
+  </div>
+
+</div>
+
+</table>
+</div>
+								</section>
+
+
+							<!-- Section
+								<section>
+									<header class="major">
+										<h2>Ipsum sed dolor</h2>
+									</header>
+									<div class="posts">
+										<article>
+											<a href="#" class="image"><img src="images/pic01.jpg" alt="" /></a>
+											<h3>Interdum aenean</h3>
+											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<ul class="actions">
+												<li><a href="#" class="button">More</a></li>
+											</ul>
+										</article>
+										<article>
+											<a href="#" class="image"><img src="images/pic02.jpg" alt="" /></a>
+											<h3>Nulla amet dolore</h3>
+											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<ul class="actions">
+												<li><a href="#" class="button">More</a></li>
+											</ul>
+										</article>
+										<article>
+											<a href="#" class="image"><img src="images/pic03.jpg" alt="" /></a>
+											<h3>Tempus ullamcorper</h3>
+											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<ul class="actions">
+												<li><a href="#" class="button">More</a></li>
+											</ul>
+										</article>
+										<article>
+											<a href="#" class="image"><img src="images/pic04.jpg" alt="" /></a>
+											<h3>Sed etiam facilis</h3>
+											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<ul class="actions">
+												<li><a href="#" class="button">More</a></li>
+											</ul>
+										</article>
+										<article>
+											<a href="#" class="image"><img src="images/pic05.jpg" alt="" /></a>
+											<h3>Feugiat lorem aenean</h3>
+											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<ul class="actions">
+												<li><a href="#" class="button">More</a></li>
+											</ul>
+										</article>
+										<article>
+											<a href="#" class="image"><img src="images/pic06.jpg" alt="" /></a>
+											<h3>Amet varius aliquam</h3>
+											<p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore. Proin aliquam facilisis ante interdum. Sed nulla amet lorem feugiat tempus aliquam.</p>
+											<ul class="actions">
+												<li><a href="#" class="button">More</a></li>
+											</ul>
+										</article>
+									</div>
+								</section>
+								-->
+						</div>
+					</div>
+
+				<!-- Sidebar -->
+
+                               <!-- Sidebar -->
+                                        <div id="sidebar">
+                                                <div class="inner">
+                                                        <!-- Search 
+                                                                <section id="search" class="alt">
+                                                                                <form method="get" action="https://arb.parts/eo-search.php">
+                                                                                <input type="text" name="executiveorder" id="eo" placeholder="E.O. Number" />
+                                                                                <input type="submit" value="Search E.O." /></form>
+
+                                                                </section>
+							-->
+                                                        <!-- Menu -->
+                                                                <nav id="menu">
+                                                                        <header class="major">
+                                                                                <h2>Menu</h2>
+                                                                        </header>
+                                                                        <ul>
+                                                                                <li><a href="https://documentation.help/">Homepage</a></li> <!--
+                                                                                <li>
+                                                                                        <span class="opener">Approved Vehicles</span>
+                                                                                        <ul>
+                                                                                                <li><a href="#">Motorcycles</a></li>
+                                                                                                <li><a href="#">On-Road Vehicles</a></li>
+                                                                                                <li><a href="#">Off-Road Vehicles</a></li>
+                                                                                                <li><a href="#">Compression Engines</a></li>
+                                                                                        </ul>
+                                                                                </li>
+										
+                                                                                <li><a href="https://arb.parts/Contact-Us">Contact Us</a></li>
+                                                                                <li><a href="https://arb.parts/About-Us">About Us</a></li> -->
+                                                                        </ul>
+								<div><div class="calibreTocIndex">
+        <h2> Table of contents</h2>
+        <div>
+  <ul>
+    <li>
+      <a >Introduction</a>
+      <ul>
+        <li>
+          <a href="ay_e0qjz.htm">What is AY-3-8910/12 Emulator</a>
+        </li>
+        <li>
+          <a href="ay_e5odz.htm">Whats new in this version</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a >Emulator using</a>
+      <ul>
+        <li>
+          <a href="ay_e6qyb.htm">Main window elements</a>
+        </li>
+        <li>
+          <a href="ay_e6dki.htm">"Mixer" dialog box</a>
+        </li>
+        <li>
+          <a href="ay_e6gs3.htm">"Tools" dialog box</a>
+        </li>
+        <li>
+          <a href="ay_e03p0.htm">"Playlist" window</a>
+        </li>
+        <li>
+          <a href="ay_e66nh.htm">"List's item adjusting" dialog box</a>
+        </li>
+        <li>
+          <a href="ay_e0che.htm">"Information in the file header" dialog box</a>
+        </li>
+        <li>
+          <a href="ay_e8d7p.htm">Command line</a>
+        </li>
+        <li>
+          <a href="ay_e3ygj.htm">Hot keys</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a >Strange behaviour of Emulator</a>
+      <ul>
+        <li>
+          <a href="ay_e31ki.htm">Playing order</a>
+        </li>
+        <li>
+          <a href="ay_e1xev.htm">Looping melody</a>
+        </li>
+        <li>
+          <a href="ay_e22lo.htm">Starting time of Emulator</a>
+        </li>
+        <li>
+          <a href="ay_e288e.htm">Files opening</a>
+        </li>
+        <li>
+          <a href="ay_e23ll.htm">Converting from OUT and ZXAY</a>
+        </li>
+        <li>
+          <a href="ay_e6lrm.htm">Seeking tunes</a>
+        </li>
+        <li>
+          <a href="ay_e2qgm.htm">How to interrupt converting</a>
+        </li>
+        <li>
+          <a href="ay_e2r72.htm">Windows managing</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a >Files formats</a>
+      <ul>
+        <li>
+          <a href="ay_e9wok.htm">OUT</a>
+        </li>
+        <li>
+          <a href="ay_e65a1.htm">ZXAY</a>
+        </li>
+        <li>
+          <a href="ay_e631s.htm">ZX50</a>
+        </li>
+        <li>
+          <a href="ay_e099f.htm">STC</a>
+        </li>
+        <li>
+          <a href="ay_e8obn.htm">ASC</a>
+        </li>
+        <li>
+          <a href="ay_e94dp.htm">FXM</a>
+        </li>
+        <li>
+          <a href="ay_e0625.htm">YM</a>
+        </li>
+        <li>
+          <a href="ay_e0irc.htm">VTX</a>
+        </li>
+        <li>
+          <a href="ay_e9zqf.htm">PSG</a>
+        </li>
+        <li>
+          <a href="ay_e04vt.htm">AY</a>
+        </li>
+        <li>
+          <a href="ay_e8oml.htm">AYM</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a >Emulator support</a>
+      <ul>
+        <li>
+          <a href="ay_e9kby.htm">Distribution</a>
+        </li>
+        <li>
+          <a href="ay_e0luw.htm">Music archives</a>
+        </li>
+        <li>
+          <a href="ay_e4vjn.htm">Skin files</a>
+        </li>
+        <li>
+          <a href="ay_e7a91.htm">Official Emulator Page</a>
+        </li>
+        <li>
+          <a href="ay_e033g.htm">Contact with author</a>
+        </li>
+      </ul>
+    </li>
+    <li>
+      <a >Authors and other peoples</a>
+      <ul>
+        <li>
+          <a href="ay_e5okv.htm">Message of thanks</a>
+        </li>
+        <li>
+          <a href="ay_e3wmr.htm">Authors</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+      </div>
+    
+
+  </div>
+
+                                                                  </nav>
+
+                                                        <!-- Section
+                                                                <section>
+                                                                        <header class="major">
+                                                                                <h2>Ante interdum</h2>
+                                                                        </header>
+                                                                        <div class="mini-posts">
+                                                                                <article>
+                                                                                        <a href="#" class="image"><img src="images/pic07.jpg" alt="" /></a>
+                                                                                        <p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore aliquam.</p>
+                                                                                </article>
+                                                                                <article>
+                                                                                        <a href="#" class="image"><img src="images/pic08.jpg" alt="" /></a>
+                                                                                        <p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore aliquam.</p>
+                                                                                </article>
+                                                                                <article>
+                                                                                        <a href="#" class="image"><img src="images/pic09.jpg" alt="" /></a>
+                                                                                        <p>Aenean ornare velit lacus, ac varius enim lorem ullamcorper dolore aliquam.</p>
+                                                                                </article>
+                                                                        </div>
+                                                                        <ul class="actions">
+                                                                                <li><a href="#" class="button">More</a></li>
+                                                                        </ul>
+                                                                </section>
+                                                        -->
+                                                        <!-- Section -->
+                                                                <section>
+                                                                        <header class="major">
+                                                                                <h2>Get in touch</h2>
+                                                                        </header>
+                                                                        <p>Submit feedback about this site to:</p>
+                                                                        <ul class="contact">
+                                                                                <li class="fa-envelope-o"><a href="/cdn-cgi/l/email-protection#f8909d94889c979b8bb88a9d9095999696d69b97"><span class="__cf_email__" data-cfemail="b5ddd0d9c5d1dad6c6f5c7d0ddd8d4dbdb9bd6da">[email&#160;protected]</span></a></li>
+                                                                        </ul>
+                                                                </section>
+
+                                                        <!-- Footer -->
+                                                                <footer id="footer">
+                                                                        <p class="copyright">&copy; <a href="https://documentation.help">documentation.help</a>. Design: <a href="https://rehmann.co">rehmann.co</a>.</p>
+                                                                        <ul class="icons">
+										<!--
+                                                                                <li><a href="https://twitter.com/ca_carb" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
+                                                                                <li><a href="http://fb.me/carbparts" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
+                                                                                <li><a href="#" class="icon fa-instagram"><span class="label">Instagram</span></a></li>-->
+                                                                        </ul>
+                                                                </footer>
+
+                                                </div>
+                                        </div>
+
+                        </div>
+
+                <!-- Scripts -->
+                        <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="/assets/js/jquery.min.js" type="2e4a7abb0c6863d402c87af5-text/javascript"></script>
+                        <script src="/assets/js/skel.min.js" type="2e4a7abb0c6863d402c87af5-text/javascript"></script>
+                        <script src="/assets/js/util.js" type="2e4a7abb0c6863d402c87af5-text/javascript"></script>
+                        <!--[if lte IE 8]><script src="assets/js/ie/respond.min.js"></script><![endif]-->
+                        <script src="/assets/js/main.js" type="2e4a7abb0c6863d402c87af5-text/javascript"></script>
+
+        <script src="/cdn-cgi/scripts/7d0fa10a/cloudflare-static/rocket-loader.min.js" data-cf-settings="2e4a7abb0c6863d402c87af5-|49" defer></script></body>
+</html>

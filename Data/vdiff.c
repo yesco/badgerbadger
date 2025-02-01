@@ -8,6 +8,8 @@
 // quarter - SUMMARY: frames= 1828 trlse=   575 KB    322 B/frame
 // -r  6     SUMMARY: frames=  441 trlse=   232 KB    540 B/frame
 
+// (* 8000 1828) = 14 MB... vs 1.8MB full 25 Hz 240x200
+
 // --- sequence
 // 3x (badger mushroom) badger arg snake
 // 2x (badger mushroom) badger arg snake
@@ -22,6 +24,8 @@
 //
 // (+ (* 13 134868) (* 10 5292) (* 3 179634))= 2.3MB
 // 
+// 72s music:
+// - 2 bit: 10 KHz, (/ 10000 4) = 2500 bytes/s ???
 
 
 #define FULL
