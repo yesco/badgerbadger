@@ -92,6 +92,8 @@ int main() {
     char diff[sizeof(rgb)];
     memcpy(diff, rgb, sizeof(diff));
 
+    // TODO: don't/DO do diff, but for now just simplify colours
+    if (0) 
     for(int r=0; r<H; ++r) {
       int p= 0, c= 0;
       for(int j=0; j<W; ++j) {

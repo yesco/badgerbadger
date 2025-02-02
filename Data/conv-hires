@@ -1,1 +1,1 @@
-ls -1 *.ppm | time xargs -P32 -l1 luajit PictOric.lua
+ls -1 *.ppm | time xargs -P16 -l1 luajit PictOric.lua
