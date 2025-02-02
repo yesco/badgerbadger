@@ -1,1 +1,1 @@
-sox Data/warhawk.ogg -r 130k war.ogg  trim 0 10 ; ./freq-dump war.ogg | perl freq-analyze.pl | perl hz2sox.pl > fil ; wc fil ; play -n --effects-file fil ; wc fil
+sox Data/warhawk.ogg -r 130k war.ogg  trim 0 60 ; ./freq-dump war.ogg | perl freq-analyze.pl | perl hz2sox.pl > fil ; wc fil ; play -n --effects-file fil ; wc fil
