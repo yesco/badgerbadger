@@ -1,0 +1,1 @@
+cat bbb.freq  | grep -v ' [[:digit:]]\.' | less
