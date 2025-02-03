@@ -61,6 +61,7 @@ dkms.conf
 *.m4a
 *.mp4
 *.ppm
+*.bmp
 *.bin
 *.ogg
 *.reg

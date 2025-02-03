@@ -2,10 +2,18 @@
 
 #include <stdio.h>
 
+int cgetc() { return 3; }
+void gotoxy(char x, char y) { }
+#define HIRESMODE 30
+char curmode=HIRESMODE;
+#define STATUS
+
+#include "../../simple6502js/65lisp/compress.c"
+
 // last number of bytes diff during last rle
 int ndiff;
 
-int rle(char* last, char* scr) {
+int rle(char* last, char* scr, char print) {
   int n= 0;
   char c= 0;
 
@@ -23,12 +31,16 @@ int rle(char* last, char* scr) {
     if (c==lastc) ++n;
     else {
       // differ - report
-      if (n>1) printf("+%d", n),nenc+=(lastc==32)?1:2; // use hibit to mean skip!
-      if (lasti!=i-n-1) printf("\n%04X: ", lasti);
+      if (n>1) { nenc+=(lastc==32)?1:2; if (print) printf("+%d", n); } // use hibit to mean skip!
+      else { int j= n; while(j-->0) { ++nenc; if (print) printf(" %02x", lastc); }} // print below threshold
+      // print address just for debugging
+      if (lasti!=i-n-1) { ++nenc; if (print) printf("\n%04X: ", lasti); }
 
-      if (i%40==0) printf("\n");
+      // newline for new 40byte line, just for debugging
+      if (i%40==0 && print) printf("\n");
 
-      printf(" %02x", c);
+      // print current different character
+      if (print) printf(" %02x", c);
       ++nenc;
       n= 0; lasti= i; lastc= c;
     }
@@ -38,9 +50,9 @@ int rle(char* last, char* scr) {
   // - report
   if (n) {
     if (c==32) --nenc;
-    else printf("+%d", n),nenc+=2;
+    else { nenc+=2; if (print) printf("+%d", n); }
   }
-  printf("\n");
+  if (print) printf("\n");
 
   return nenc;
 }
@@ -54,7 +66,7 @@ int main() {
   char last[8000]= {0};
   char empty[8000]= {0};
 
-  int tfull= 0, trle= 0;
+  int tfull= 0, trle= 0, tnz=0, tnzrle= 0, tnzRLE= 0;
 
   do {
     sprintf(name, "oneps-%05d.tap", ++i);
@@ -69,13 +81,32 @@ int main() {
     }
 
     // diff
-    int nfull= rle(empty, scr);
-    int nrle= rle(last, scr);
+    int nfull= rle(empty, scr, 0);
+    int nrle= rle(last, scr, 1);
     trle+= nrle;
     tfull+= nfull;
 
-    // TODO: md5! maybe some frames repeat? save? or save full for decompress?
-    printf("%4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d\n", i, nfull, ndiff, nrle, trle);
+
+    Compressed* z= compress(scr, sizeof(scr));
+    int nz= z->len;
+    free(z);
+    tnz+= nz;
+
+
+    char rrr[sizeof(scr)];
+    memcpy(rrr, scr, sizeof(rrr));
+    int nRLE= RLE(rrr, sizeof(rrr));
+
+    Compressed* zrle= compress(rrr, nRLE);
+    int nzRLE= zrle->len;
+    free(zrle);
+    tnzRLE+= nzRLE;
+
+    // TODO: make a copy with 
+    // TODO: filepak()
+
+    printf("\n  :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nRLE=%4d nzRLE=%4d tnzRLE=%6d\n",
+                   i,            nfull,    ndiff,   nrle,    trle,  nz,     tnz,     nRLE,     nzRLE,     tnzRLE);
     
   } while(1);
 
