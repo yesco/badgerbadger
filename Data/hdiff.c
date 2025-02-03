@@ -13,7 +13,7 @@ char curmode=HIRESMODE;
 // last number of bytes diff during last rle
 int ndiff;
 
-int rle(char* last, char* scr, char print) {
+int rle(char* last, char* scr, char print, char* modify) {
   int n= 0;
   char c= 0;
 
@@ -28,8 +28,11 @@ int rle(char* last, char* scr, char print) {
     // collapse non-change to 32 ("unused graphics codes" 32--63, 128+32--63)
     if (c==last[i]) c= 32; else ++ndiff;
 
+    if (modify) modify[i]= c;
+
     if (c==lastc) ++n;
     else {
+      // RLE - encoding "estimate"
       // differ - report
       if (n>1) { nenc+=(lastc==32)?1:2; if (print) printf("+%d", n); } // use hibit to mean skip!
       else { int j= n; while(j-->0) { ++nenc; if (print) printf(" %02x", lastc); }} // print below threshold
@@ -81,11 +84,11 @@ int main() {
     }
 
     // diff
-    int nfull= rle(empty, scr, 0);
-    int nrle= rle(last, scr, 1);
+    int nfull= rle(empty, scr, 0, NULL);
+    char nw[sizeof(last)];
+    int nrle= rle(last, scr, 1, nw);
     trle+= nrle;
     tfull+= nfull;
-
 
     Compressed* z= compress(scr, sizeof(scr));
     int nz= z->len;
@@ -93,8 +96,8 @@ int main() {
     tnz+= nz;
 
 
-    char rrr[sizeof(scr)];
-    memcpy(rrr, scr, sizeof(rrr));
+    char rrr[sizeof(nw)];
+    memcpy(rrr, nw, sizeof(rrr));
     int nRLE= RLE(rrr, sizeof(rrr));
 
     Compressed* zrle= compress(rrr, nRLE);
