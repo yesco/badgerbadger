@@ -10,6 +10,19 @@ char curmode=HIRESMODE;
 
 #include "../../simple6502js/65lisp/compress.c"
 
+// random useless hash-function
+unsigned long hash(char* s, int len) {
+  long h = 5381;
+  int c;
+
+  while(len-->0) {
+    c= *s++;
+    h= ((h << 5) + h) + c;
+  }
+
+  return h;
+}
+
 // last number of bytes diff during last rle
 int ndiff;
 
@@ -144,6 +157,8 @@ int main() {
       printf("%% Error: not full screen?\n"); break;
     }
 
+    long h= hash(scr, sizeof(scr));
+
     // diff
     int nfull= hiresRLE(empty, scr, 0, NULL);
     char nw[sizeof(last)]; // TODO: maybe not enough?
@@ -171,7 +186,8 @@ int main() {
 
     //printf("\n  :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nRLE=%4d nzRLE=%4d tnzRLE=%6d\n",
     //i,            nfull,    ndiff,   nrle,    trle,  nz,     tnz,     nRLE,     nzRLE,     tnzRLE);
-    printf("\n  :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nzRLE=%4d tnzRLE=%6d %s\n",
+    printf("\n  %016lx :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nzRLE=%4d tnzRLE=%6d %s\n",
+           h,
                    i,            nfull,    ndiff,   nrle,    trle,  nz,     tnz,      nzRLE,     tnzRLE,
            nz<nzRLE? "nc<nzRLE!": ""
            );
