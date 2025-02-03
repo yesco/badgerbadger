@@ -60,6 +60,67 @@ int rle(char* last, char* scr, char print, char* modify) {
   return nenc;
 }
 
+int hiresRLE(char* last, char* scr, char print, char* modify) {
+  int n= 0;
+  char c= 0;
+
+  int lastc= -1, lasti= 0;
+  int nenc= 0;
+
+  ndiff= 0;
+
+  int i= 0;
+  while(1) {
+    c= scr[i];
+
+    // collapse non-change to 32 ("unused graphics codes" 32--63, 128+32--63)
+    if (c==last[i]) c= 32; else ++ndiff;
+    ++i;
+
+    if (modify) modify[nenc]= c;
+
+    if (c==lastc && i<8000) {
+      ++n;
+    } else {
+      // differ/eof - report
+
+      // RLE - encoding 
+      // (last no need skip!)
+      if (lastc==32 && i>=8000) { break; }
+
+      if (n>1) {
+        // encode RLE: 33-63#31... (lo...hi)
+        if (modify) modify[++nenc]= 32+1+(n%31); else nenc++;
+        n-= n/31; // TODO: not optimal... lol
+        while(n>0) {
+          if (modify) modify[++nenc]= 32+1+(n%31); else nenc++;
+          n/= 31;
+        }
+        //if (print) printf("+%d", n);
+      }
+
+      nenc++;
+      if (i>=8000) { break; }
+
+      // print address just for debugging
+      //if (lasti!=i-n-1) { ++nenc; if (print) printf("\n%04X: ", lasti); }
+
+      // newline for new 40byte line, just for debugging
+      ///if (i%40==0 && print) printf("\n");
+
+      // print current different character
+      //if (print) printf(" %02x", c);
+      n= 1; lasti= i; lastc= c;
+    }
+
+    lastc= c;
+  }
+
+  //if (print) printf("\n");
+  
+  return nenc;
+}
+
 int main() {
   FILE *f;
   char name[64]= {0};
@@ -84,9 +145,9 @@ int main() {
     }
 
     // diff
-    int nfull= rle(empty, scr, 0, NULL);
-    char nw[sizeof(last)];
-    int nrle= rle(last, scr, 1, nw);
+    int nfull= hiresRLE(empty, scr, 0, NULL);
+    char nw[sizeof(last)]; // TODO: maybe not enough?
+    int nrle= hiresRLE(last, scr, 1, nw);
     trle+= nrle;
     tfull+= nfull;
 
@@ -97,10 +158,10 @@ int main() {
 
 
     char rrr[sizeof(nw)];
-    memcpy(rrr, nw, sizeof(rrr));
-    int nRLE= RLE(rrr, sizeof(rrr));
+    memcpy(rrr, nw, nrle);
+    //int nRLE= RLE(rrr, nrle);
 
-    Compressed* zrle= compress(rrr, nRLE);
+    Compressed* zrle= compress(rrr, nrle);
     int nzRLE= zrle->len;
     free(zrle);
     tnzRLE+= nzRLE;
@@ -108,8 +169,12 @@ int main() {
     // TODO: make a copy with 
     // TODO: filepak()
 
-    printf("\n  :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nRLE=%4d nzRLE=%4d tnzRLE=%6d\n",
-                   i,            nfull,    ndiff,   nrle,    trle,  nz,     tnz,     nRLE,     nzRLE,     tnzRLE);
+    //printf("\n  :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nRLE=%4d nzRLE=%4d tnzRLE=%6d\n",
+    //i,            nfull,    ndiff,   nrle,    trle,  nz,     tnz,     nRLE,     nzRLE,     tnzRLE);
+    printf("\n  :: %4d ==> nfull=%4d ndiff=%4d nrle=%4d trle=%6d nz=%4d tnz=%6d nzRLE=%4d tnzRLE=%6d %s\n",
+                   i,            nfull,    ndiff,   nrle,    trle,  nz,     tnz,      nzRLE,     tnzRLE,
+           nz<nzRLE? "nc<nzRLE!": ""
+           );
     
   } while(1);
 
