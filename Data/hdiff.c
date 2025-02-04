@@ -73,6 +73,11 @@ int rle(char* last, char* scr, char print, char* modify) {
   return nenc;
 }
 
+// TODO: 0 diff => 1 byte?
+// TODO: encoding too big, 6 diff => 28
+//                         1 diff =>  7 ???? should be max 5? maybe 
+
+// This one outputs every unique followed by repeat a .... 31^n bits...., if n>1
 int hiresRLE(char* last, char* scr, char print, char* modify) {
   int n= 0;
   char c= 0;
