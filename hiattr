@@ -1,0 +1,19 @@
+f=$1
+magick $f -resize 240x200 -extent 240x200 fil.ppm
+echo "-- Original resized --"
+img2sixel -h 900 fil.ppm
+
+echo "-- 3-bit (8 colors) --"
+clang 3-bit.c && ./a.out fil.ppm
+img2sixel -h 900 fil.ppm
+
+luajit Data/PictOric.lua fil.ppm
+
+echo "-- View encoding of attributes --"
+clang hires.c && ./a.out fil.tap > fil2.ppm
+img2sixel -h 900 fil2.ppm
+
+echo "-- LOOK --"
+img2sixel -h 900 fil.tap.bmp
+
+
