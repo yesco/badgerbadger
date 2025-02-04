@@ -27,7 +27,16 @@ int main(int argc, char** argv) {
   int trle= 0;
 
   // very fixed, 240x200 lol
-  fread(head, 15, 1, f);
+  char* o= head;
+  fgets(o, sizeof(head), f);
+  o+= strlen(o);
+  fgets(o, sizeof(head), f); // LOL smaller than sizeof...
+  o+= strlen(o);
+  fgets(o, sizeof(head), f); // LOL smaller than sizeof...
+  o+= strlen(o);
+  
+  long p= ftell(f);
+  //fread(head, 15, 1, f);
   if (sizeof(rgb)!=fread(rgb, 1, sizeof(rgb), f)) {
     printf("%% Error: not full screen?\n"); exit(1);
   }
@@ -43,8 +52,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  fpos_t pos= 15;
-  fsetpos(f, &pos);
+  fseek(f, p, SEEK_SET);
   int wr= fwrite(rgb, 1, sizeof(rgb), f);
   assert(wr==sizeof(rgb));
 }

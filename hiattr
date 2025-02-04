@@ -1,5 +1,9 @@
 f=$1
 magick $f -resize 240x200 -extent 240x200 fil.ppm
+
+# shift image 0,1..5 to see if it gets better?
+#magick $f -resize 240x200 -extent 240x200+5 fil.ppm
+
 echo "-- Original resized --"
 img2sixel -h 900 fil.ppm
 
