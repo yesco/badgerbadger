@@ -140,6 +140,9 @@ int hiresRLE(char* last, char* scr, char print, char* modify) {
 }
 
 int main() {
+  FILE *ff= fopen("frames.c", "w");
+  fprintf(ff, "struct { unsigned int size; char* z; } frames[]={\n");
+
   FILE *f;
   char name[64]= {0};
   int i= 0;
@@ -183,8 +186,29 @@ int main() {
 
     Compressed* zrle= compress(rrr, nrle);
     int nzRLE= zrle->len;
-    free(zrle);
     tnzRLE+= nzRLE;
+
+    // write out diff
+    sprintf(name, "FRAME%05d.c", i);
+    FILE* wf= fopen(name, "w");
+    assert(wf);
+    char* p= zrle->data;
+    fprintf(wf, "#define FRAME%05d \"", i);
+    for(int i=0; i<nzRLE; ++i) fprintf(wf, "\\x%02x", *p++);
+    fprintf(wf, "\"\n");
+
+    p= (char*)zrle;
+    fprintf(ff, "#define FRAME%05d \"", i);
+    for(int i=0; i<nzRLE+sizeof(zrle); ++i) fprintf(ff, "\\x%02x", *p++);
+    fprintf(ff, "\"\n");
+
+    fclose(wf);
+
+    free(zrle);
+
+    sprintf(name, "FRAME%05d", i);
+    fprintf(ff, "{%4d,%s}, // total: %6d\n", nzRLE, name, tnzRLE);
+    fflush(ff);
 
     // TODO: make a copy with 
     // TODO: filepak()
@@ -197,7 +221,11 @@ int main() {
            nz<nzRLE? "nc<nzRLE!": ""
            );
     
+    if (tnzRLE>=16384-3000) break;
   } while(1);
+
+  fprintf(ff, "{0,0}};\n");
+  fclose(ff);
 
   printf("%% No such file: %s\n", name);
 
