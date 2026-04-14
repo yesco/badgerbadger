@@ -1,0 +1,3 @@
+play $* stat -v -freq 2>&1
+
+

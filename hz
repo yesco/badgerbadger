@@ -1,0 +1,1 @@
+gunzip -c warhawk.freq.gz | perl freq-analyze.pl | grep 'Hz' 
