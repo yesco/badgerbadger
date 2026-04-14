@@ -42,8 +42,8 @@ void waitms(long w) {
 
 //struct { unsigned int size; char* z; } frames[]={ {7,NULL},{7,NULL},{7,NULL},};
 
-char scr[5000]= {64};
-int i;
+// TODO: 8000 makes the file not start... no warning
+char scr[8000]= {64};
 
 void main() {
   int i= 0, n= sizeof(frames)/sizeof(*frames), ln;
@@ -57,14 +57,17 @@ void main() {
     Compressed *z= (Compressed*)(frames[i].z);
     //gotoxy(0, 25);
     printf("Badger Badger %4u->%4u %d/%d \n", z->len, z->origlen, i, n);
-    //printf("Badger Badger %4u->%4u %d/%d \n", 42, 4711, i, n);
 
-    //decompress(z, scr);
-    //ln= unRLE(scr, z->len, z->origlen);
+    puts("dez...");
+    decompress(z, scr);
+    puts("unrle...");
+    ln= unRLE(scr, z->len, z->origlen);
+    printf(" --> %d\n", ln);
     //while(ln) {
     //--ln;
     //}
 
+    cgetc();
     ++i;
   }
 }

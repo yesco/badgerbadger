@@ -1,6 +1,7 @@
 // diff of sequence of hires screens
 
 #include <stdio.h>
+#include <string.h>
 
 int cgetc() { return 3; }
 void gotoxy(char x, char y) { }
@@ -179,14 +180,24 @@ int main() {
     free(z);
     tnz+= nz;
 
-
     char rrr[sizeof(nw)];
     memcpy(rrr, nw, nrle);
-    //int nRLE= RLE(rrr, nrle);
+    //int nRLE= RLE(rrr, nrle); // different one...
 
     Compressed* zrle= compress(rrr, nrle);
     int nzRLE= zrle->len;
     tnzRLE+= nzRLE;
+
+    // TEST COMPRESSED DATA....
+    if (1) {
+      char dez[8000];
+      decompress(zrle, dez);
+      printf("  dez memcmp=%d\n", memcmp(rrr, dez, nrle));
+      for(int i=0; i<nrle; ++i) {
+        if (rrr[i]==dez[i]) putchar('='); else printf(" %02x>%02x ", rrr[i], dez[i]);
+      }
+      putchar('\n');
+    }
 
     // write out diff
     sprintf(name, "FRAME%05d.c", i);
@@ -204,12 +215,15 @@ int main() {
 
     fclose(wf);
 
+
     free(zrle);
 
     sprintf(name, "FRAME%05d", i);
     fprintf(ff, "{%4d,%s}, // total: %6d\n", nzRLE, name, tnzRLE);
     fflush(ff);
 
+    //free(dez);
+    
     // TODO: make a copy with 
     // TODO: filepak()
 
@@ -221,7 +235,7 @@ int main() {
            nz<nzRLE? "nc<nzRLE!": ""
            );
     
-    if (tnzRLE>=16384-3000) break;
+    if (tnzRLE>=16384-8000) break;
   } while(1);
 
   fprintf(ff, "{0,0}};\n");
