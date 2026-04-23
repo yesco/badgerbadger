@@ -1,1 +1,10 @@
-cat $* | perl hz2sox.pl > fil ; play -n --effects-file fil
+cat $* | perl hz2sox.pl > fil ; play -n --combine sequence --effects-file fil
+
+
+# same same
+
+#cat $* | perl hz2sox.pl > fil ; sox -n -t sox - --combine sequence --effects-file fil | play -t sox -
+
+#cat $* | perl hz2sox.pl > fil ; sox -n fil.wav --combine sequence --effects-file fil ; play fil.wav
+
+
