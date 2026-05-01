@@ -2,7 +2,7 @@ import subprocess
 import numpy as np
 import sys
 
-def extract_high_res_ym(input_file):
+def extract_ay_mixed(input_file):
     fs = 44100
     target_fps = 50
     step_size = int(fs / target_fps)
@@ -23,37 +23,45 @@ def extract_high_res_ym(input_file):
             
             windowed = buffer * np.hanning(window_size)
             fft_res = np.abs(np.fft.rfft(windowed))
+            freqs = np.fft.rfftfreq(window_size, 1/fs)
             
-            # 1. Ignore DC/Noise Floor: anything below ~30Hz (Index 3)
+            # --- NOISE CALCULATION ---
+            hf_region = fft_res[100:500] 
+            flatness = np.exp(np.mean(np.log(hf_region + 1e-6))) / (np.mean(hf_region) + 1e-6)
+            
+            noise_period = 0
+            is_percussion = flatness > 0.35 # Threshold
+            if is_percussion:
+                centroid = np.sum(freqs[100:500] * hf_region) / (np.sum(hf_region) + 1e-6)
+                noise_period = int(np.clip(31 - (centroid / 250), 0, 31))
+
+            # --- TONE CALCULATION ---
             search_data = fft_res[3:370] 
             top_3_sub = np.argsort(search_data)[-3:][::-1]
             
             parts = []
-            for i_sub in top_3_sub:
-                i = i_sub + 3 
+            for idx, i_sub in enumerate(top_3_sub):
+                i = i_sub + 3
+                raw_mag = fft_res[i]
+                vol_db = 20 * np.log10(raw_mag / 10 + 1e-10)
+                ay_vol = int(np.clip(vol_db / 5, 0, 15))
                 
-                # Frequency Interpolation
+                # Interpolated Frequency
                 y0, y1, y2 = np.log(fft_res[i-1:i+2] + 1e-10)
                 p = (y0 - y2) / (2 * (y0 - 2 * y1 + y2))
                 precise_freq = (i + p) * (fs / window_size)
 
-                # 2. LOGARITHMIC VOLUME MAPPING (0-15)
-                # Convert raw magnitude to Decibels, then map to 0-15
-                raw_mag = fft_res[i]
-                if raw_mag > 100: # Simple gate to ignore silence
-                    # Math: Map roughly 100-50000 range to 1-15
-                    vol_db = 20 * np.log10(raw_mag / 10) 
-                    ay_vol = int(np.clip(vol_db / 5, 0, 15))
+                # Format channel
+                if ay_vol < 4:
+                    parts.append("    ---      ")
                 else:
-                    ay_vol = 0
-                
-                # 3. Filter out low-value "junk"
-                if ay_vol < 4: # If it's too quiet, just kill it
-                    parts.append(f"  0v    0Hz")
-                else:
-                    parts.append(f"{ay_vol:>3}v {precise_freq:>6.1f}Hz")
+                    # If this is Channel C (idx 2) and we have noise, mix it in
+                    if idx == 2 and is_percussion:
+                        parts.append(f"v{ay_vol:02d}N{noise_period:02d} {precise_freq:>6.1f}Hz")
+                    else:
+                        parts.append(f"v{ay_vol:02d}    {precise_freq:>6.1f}Hz")
             
-            print("\t".join(parts))
+            print(" | ".join(parts))
             
     except KeyboardInterrupt:
         process.terminate()
@@ -62,6 +70,6 @@ def extract_high_res_ym(input_file):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python3 freqs.py <audio_file>")
+        print("Usage: python3 script.py <audio_file>")
     else:
-        extract_high_res_ym(sys.argv[1])
+        extract_ay_mixed(sys.argv[1])
