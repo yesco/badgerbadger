@@ -2,11 +2,12 @@ import subprocess
 import numpy as np
 import sys
 
-def extract_for_ym(input_file):
+def extract_sliding_ym(input_file):
     fs = 44100
     target_fps = 50
-    chunk_size = int(fs / target_fps)  # 882 samples
-    scale = 0.005 
+    step_size = int(fs / target_fps)  # 882 samples (how far we slide)
+    window_size = 4096                # Matches SoX resolution
+    scale = 0.002 
 
     command = [
         'ffmpeg', '-i', input_file,
@@ -15,35 +16,37 @@ def extract_for_ym(input_file):
     
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     
+    # Pre-fill buffer for the first window
+    buffer = np.zeros(window_size, dtype=np.int16)
+    
     try:
         while True:
-            raw_data = process.stdout.read(chunk_size * 2)
-            if len(raw_data) < chunk_size * 2:
+            # Read only the 'step' amount of new data
+            raw_data = process.stdout.read(step_size * 2)
+            if len(raw_data) < step_size * 2:
                 break
             
-            data = np.frombuffer(raw_data, dtype=np.int16)
+            new_samples = np.frombuffer(raw_data, dtype=np.int16)
             
-            # Hanning window is crucial for clean AY-chip tones
-            windowed_data = data * np.hanning(len(data))
-            fft_res = np.abs(np.fft.rfft(windowed_data))
-            freqs = np.fft.rfftfreq(chunk_size, 1/fs)
+            # Slide the buffer: discard oldest, append newest
+            buffer = np.roll(buffer, -step_size)
+            buffer[-step_size:] = new_samples
             
-            # 1. Ignore 0Hz (Index 0)
-            # 2. Limit to 4000Hz (Index ~80) to avoid aliasing on the AY chip
-            search_range = fft_res[1:80] 
+            # Apply Hanning window to the 4096-sample block
+            windowed = buffer * np.hanning(window_size)
+            fft_res = np.abs(np.fft.rfft(windowed))
+            freqs = np.fft.rfftfreq(window_size, 1/fs)
             
-            # Get top 3 indices from the search range
-            if len(search_range) < 3: break
-            top_3_sub_indices = np.argsort(search_range)[-3:][::-1]
-            
-            # Convert back to original indices (adding 1 because we sliced from 1)
-            top_indices = top_3_sub_indices + 1
+            # Ignore DC offset (0Hz) and cap at 4000Hz for AY chip
+            # At 4096 window, index 370 is ~4000Hz
+            search_range = fft_res[1:370] 
+            top_3_sub = np.argsort(search_range)[-3:][::-1]
+            top_indices = top_3_sub + 1
             
             parts = []
             for i in top_indices:
                 vol = int(fft_res[i] * scale)
                 freq = int(freqs[i])
-                # Format to match your YM input requirements
                 parts.append(f"{vol:>3}v {freq:>4}Hz")
             
             print("\t".join(parts))
@@ -54,7 +57,4 @@ def extract_for_ym(input_file):
         process.wait()
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python3 script.py <audio_file>")
-    else:
-        extract_for_ym(sys.argv[1])
+    extract_sliding_ym(sys.argv[1])
