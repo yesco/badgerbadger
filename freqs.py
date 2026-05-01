@@ -7,7 +7,9 @@ def extract_frequencies(input_file):
     target_fps = 50
     chunk_size = int(fs / target_fps)  # 882 samples
     
-    # FFmpeg command to output raw 16-bit PCM
+    # Scale factor to make 'v' values readable (adjust if output is too small/large)
+    scale = 0.005 
+
     command = [
         'ffmpeg', '-i', input_file,
         '-f', 's16le', '-ac', '1', '-ar', str(fs), '-'
@@ -17,25 +19,29 @@ def extract_frequencies(input_file):
     
     try:
         while True:
-            # Read chunk (2 bytes per sample for s16le)
             raw_data = process.stdout.read(chunk_size * 2)
             if len(raw_data) < chunk_size * 2:
                 break
             
-            # Convert to numpy array
             data = np.frombuffer(raw_data, dtype=np.int16)
             
-            # Perform FFT
-            fft_res = np.fft.rfft(data)
+            # Use a Hanning window to prevent frequency leakage (smoother peaks)
+            windowed_data = data * np.hanning(len(data))
+            fft_res = np.abs(np.fft.rfft(windowed_data))
             freqs = np.fft.rfftfreq(chunk_size, 1/fs)
-            mags = np.abs(fft_res)
             
-            # Find indices of top 5 magnitudes
-            top_indices = np.argsort(mags)[-5:][::-1]
+            # Find top 5 peaks
+            top_indices = np.argsort(fft_res)[-5:][::-1]
             
-            # Format: Freq(Vol)
-            line_data = [f"{freqs[i]:.1f}Hz({mags[i]:.0f})" for i in top_indices]
-            print(" | ".join(line_data))
+            # Format: 'vvvV ffffHz' with specific spacing
+            parts = []
+            for i in top_indices:
+                vol = int(fft_res[i] * scale)
+                freq = int(freqs[i])
+                # Format as ' 11v 785Hz' to maintain alignment
+                parts.append(f"{vol:>3}v {freq:>4}Hz")
+            
+            print("\t".join(parts))
             
     except KeyboardInterrupt:
         process.terminate()
