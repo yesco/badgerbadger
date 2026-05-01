@@ -1,7 +1,13 @@
+# TODO: apparently sorting is messed up?
+
 @foo= (726, 23, 117, 2226, 750, 11, 738, 2238);
 print "o:@foo\n";
 @res= sort { $a <=> $b } @foo;
 print "q:@res\n";
+
+
+
+
 
 $lastfreq= 4711;
 %freq= ();
