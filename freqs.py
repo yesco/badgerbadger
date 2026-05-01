@@ -53,7 +53,12 @@ def extract_ay_final(input_file):
                 i = i_sub + 3
                 raw_mag = fft_res[i]
                 vol_db = 20 * np.log10(raw_mag / 10 + 1e-10)
-                ay_vol = int(np.clip(vol_db / 5, 0, 15))
+
+#                ay_vol = int(np.clip(vol_db / 5, 0, 15))
+
+                # Stretches the range so only the absolute peaks hit v15
+                ay_vol = int(np.clip((13 * np.log10(raw_mag + 1e-10) - 40) / 4, 0, 15))
+
                 
                 # Precise Frequency
                 y0, y1, y2 = np.log(fft_res[i-1:i+2] + 1e-10)
